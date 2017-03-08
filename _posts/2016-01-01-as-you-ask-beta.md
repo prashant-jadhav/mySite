@@ -12,7 +12,7 @@ Some times back, you had asked why you are not having your own website, on which
 
 To my surprise, you mentioned that you want to write stories. Well, good or bad, big or small, that doesn't matter until you actually keep writing... whether stories, poems, random thoughts...
 
-As *Carlos Fuentes* had said
+As _* Carlos Fuentes *_ had said
 
 <blockquote>Writing is a struggle against silence.</blockquote>
 
