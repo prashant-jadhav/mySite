@@ -1,0 +1,339 @@
+#################################
+#### Refer following article ####
+#### http://bit.ly/2rsgnLw ######
+#################################
+
+###################################################################
+#### VPC ID  : Both server and clients needs to be in same VPC ####
+###################################################################
+
+##############################################
+#### For Sensu Server with self as client on Ubuntu 14.x####
+##############################################
+## Connect to instance
+ssh -i <private.pem> ubuntu@publicIpOfServer
+
+## Install Rabbitmq server
+# Add the Erlang Solutions APT repository and install Erlang
+wget http://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+dpkg -i erlang-solutions_1.0_all.deb
+apt-get update
+apt-get -y install socat erlang-nox=1:19.3-1
+
+# Add Rabbitmq repo and install it
+wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.9/rabbitmq-server_3.6.9-1_all.deb
+dpkg -i rabbitmq-server_3.6.9-1_all.deb
+apt-get update
+
+# To enable the RabbitMQ service, you’ll need to install its init scripts using the update-rc.d
+update-rc.d rabbitmq-server enable
+
+# Create a dedicated RabbitMQ vhost for Sensu
+rabbitmqctl add_vhost /sensu
+
+# Create a RabbitMQ user for Sensu
+rabbitmqctl add_user sensu secret
+rabbitmqctl set_permissions -p /sensu sensu ".*" ".*" ".*"
+
+# Logs location for RabbitMQ
+/var/log/rabbitmq
+
+## Install Redis
+apt-get update
+apt-get -y install redis-server uchiwa
+
+# Enable/disable Redis start on system boot
+update-rc.d redis-server defaults
+
+# Verify whether Redis is running
+redis-cli ping
+
+# Log location for Redis
+/var/log/redis
+
+# Verify port where Redis is listening
+netstat -naput | grep redis
+
+## Install Sensu core monitoring
+# Install the GPG public key:
+wget -q http://sensu.global.ssl.fastly.net/apt/pubkey.gpg -O- | apt-key add -
+echo "deb http://sensu.global.ssl.fastly.net/apt sensu main" | tee /etc/apt/sources.list.d/sensu.list
+apt-get update
+apt-get install sensu
+
+## Install Postfix mail server and build-essential packages
+apt-get install -y build-essential postfix
+
+# from email address for mails
+alerts@hostName
+
+
+## Configuring Sensu Client
+# Copy the following contents to a configuration file located at /etc/sensu/conf.d/client.json
+vi /etc/sensu/conf.d/client.json
+{
+  "client": {
+    "name": "localMonServ",
+    "address": "<publicIpOfServer>",
+    "environment": "Production",
+    "subscriptions": [ "linux"],
+    "keepalive":{
+      "handler": "mailer",
+      "thresholds": {
+        "warning": 250,
+        "critical": 300
+      }
+    },
+    "socket": {
+    "bind": "127.0.0.1",
+    "port": 3030
+    }
+  }
+}
+
+# Set transport.json for connection with RabbitMQ
+vi /etc/sensu/conf.d/transport.json
+{
+  "transport":
+  {
+    "name": "rabbitmq",
+    "reconnect_on_error": true
+  }
+}
+
+# set api.json
+vi /etc/sensu/conf.d/api.json
+{
+  "api":
+  {
+    "host": "localhost",
+    "bind": "0.0.0.0",
+    "port": 4567
+  }
+}
+
+# Copy the following contents to a configuration file located at /etc/sensu/conf.d/redis.json
+vi /etc/sensu/conf.d/redis.json
+{
+  "redis":
+  {
+    "host": "127.0.0.1",
+    "port": 6379
+  }
+}
+
+
+# Copy the following contents to a configuration file located at /etc/sensu/conf.d/rabbitmq.json
+vi /etc/sensu/conf.d/rabbitmq.json
+{
+  "rabbitmq":
+  {
+    "host": "127.0.0.1",
+    "port": 5672,
+    "vhost": "/sensu",
+    "user": "sensu",
+    "password": "secret"
+  }
+}
+
+# Replace the configuration in /etc/sensu/uchiwa.json
+vi /etc/sensu/uchiwa.json
+{
+  "sensu": [
+    {
+      "name": "localMonServer",
+      "host": "localhost",
+      "port": 4567,
+      "timeout": 10
+    }
+  ],
+  "uchiwa": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "refresh": 10
+  }
+}
+
+## Install Sensu Plugins
+Go to the following location and run the commands to install sensu plugins
+cd /opt/sensu/embedded/bin/
+
+sensu-install -p cpu-checks
+sensu-install -p disk-checks
+sensu-install -p memory-checks
+sensu-install -p process-checks
+sensu-install -p mailer
+<!--
+sensu-install -p load-checks
+sensu-install -p vmstats
+ -->
+# Copy the following contents to a pipe handler configuration file located at /etc/sensu/conf.d/handler_mail.json
+vi /etc/sensu/conf.d/handler_mail.json
+{
+  "handlers": {
+    "mailer": {
+      "type": "pipe",
+      "command": "/opt/sensu/embedded/bin/handler-mailer.rb"
+    }
+  }
+}
+
+# Copy the following contents to a mailer configuration file located at /etc/sensu/conf.d/mailer.json
+vi /etc/sensu/conf.d/mailer.json
+{
+  "mailer": {
+    "admin_gui": "http://<publicIpOfServer>:8080/",
+    "mail_from": "alerts@hostName",
+    "mail_to": "primaryEmailAddress",
+    "smtp_address": "localhost",
+    "smtp_port": "25",
+    "smtp_domain": "localhost"
+  }
+}
+
+# Copy the following contents to a mailer configuration file located at /etc/sensu/conf.d/check_apache2.json
+vi /etc/sensu/conf.d/check_apache2.json
+{
+  "checks": {
+    "check-process": {
+      "handlers": ["mailer"],
+      "enable_deprecated_filtering": false,
+      "command": "/opt/sensu/embedded/bin/check-process.rb -p apache2",
+      "interval": 300,
+      "occurrences": 5,
+      "subscribers": [ "linux" ]
+    }
+  }
+}
+
+## Verify the status of sensu services
+/etc/init.d/sensu-server validate_config
+/etc/init.d/sensu-client validate_config
+/etc/init.d/sensu-api validate_config
+/etc/init.d/uchiwa status
+
+## Start sensu services
+/etc/init.d/sensu-server start && /etc/init.d/sensu-client start && /etc/init.d/sensu-api start && /etc/init.d/uchiwa start
+<!-- /etc/init.d/sensu-server stop && /etc/init.d/sensu-client stop && /etc/init.d/sensu-api stop && /etc/init.d/uchiwa stop -->
+<!-- /etc/init.d/sensu-server restart && /etc/init.d/sensu-client restart && /etc/init.d/sensu-api restart && /etc/init.d/uchiwa restart -->
+
+#################################
+#### For Remote Sensu Client ####
+#################################
+## Connect to instance
+ssh -i <private.pem> ec2-user@publicIpOfClient
+
+# Update packages
+sudo su
+yum -y update
+
+# Install httpd and php
+yum install -y httpd php
+
+# start httpd
+/etc/init.d/httpd start
+
+# Add Sensu Repo
+vi /etc/yum.repos.d/sensu.repo
+[sensu]
+name=sensu
+baseurl=https://sensu.global.ssl.fastly.net/yum/6/$basearch/
+gpgcheck=0
+enabled=1
+
+# Install sensu
+yum install -y sensu
+
+
+## Configuring Sensu Client
+# Copy the following contents to a configuration file located at /etc/sensu/conf.d/client.json
+vi /etc/sensu/conf.d/client.json
+{
+  "client": {
+    "name": "remoteSensuClient",
+    "address": "privateIpOfClient",
+    "environment": "Production",
+    "subscriptions": [ "linux"],
+    "keepalive":{
+      "handler": "mailer",
+      "thresholds": {
+        "warning": 250,
+        "critical": 300
+      }
+    },
+    "socket": {
+    "bind": "127.0.0.1",
+    "port": 3030
+    }
+  }
+}
+
+# Set transport.json for connection with RabbitMQ
+vi /etc/sensu/conf.d/transport.json
+{
+  "transport":
+  {
+    "name": "rabbitmq",
+    "reconnect_on_error": true
+  }
+}
+
+# Copy the following contents to a configuration file located at /etc/sensu/conf.d/redis.json. Use public ip of server where redis is installed
+vi /etc/sensu/conf.d/redis.json
+{
+  "redis":
+  {
+    "host": "<publicIpOfServer>",
+    "port": 6379
+  }
+}
+
+
+# Copy the following contents to a configuration file located at /etc/sensu/conf.d/rabbitmq.json. Use public ip of server where rabbitmq is installed
+vi /etc/sensu/conf.d/rabbitmq.json
+{
+  "rabbitmq":
+  {
+    "host": "<publicIpOfServer>",
+    "port": 5672,
+    "vhost": "/sensu",
+    "user": "sensu",
+    "password": "secret"
+  }
+}
+
+## Install Sensu Plugins
+Go to the following location and run the commands to install sensu plugins
+cd /opt/sensu/embedded/bin/
+
+sensu-install -p cpu-checks
+sensu-install -p disk-checks
+sensu-install -p memory-checks
+sensu-install -p process-checks
+sensu-install -p mailer
+
+# Copy the following contents to a mailer configuration file located at /etc/sensu/conf.d/check_apache2.json
+vi /etc/sensu/conf.d/check_httpd.json
+{
+  "checks": {
+    "check-process": {
+      "handlers": ["mailer"],
+      "enable_deprecated_filtering": false,
+      "command": "/opt/sensu/embedded/bin/check-process.rb -p httpd",
+      "interval": 300,
+      "occurrences": 5,
+      "subscribers": [ "linux" ]
+    }
+  }
+}
+
+## Verify the status of sensu services
+/etc/init.d/sensu-client validate_config
+
+## Start sensu services
+/etc/init.d/sensu-client start && /etc/init.d/sensu-api start
+<!-- /etc/init.d/sensu-client stop && /etc/init.d/sensu-api stop -->
+<!-- /etc/init.d/sensu-client restart && /etc/init.d/sensu-api restart -->
+
+
+
