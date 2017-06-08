@@ -25,7 +25,7 @@ wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.9/rabbitmq-server_3.6
 dpkg -i rabbitmq-server_3.6.9-1_all.deb
 apt-get update
 
-# To enable the RabbitMQ service, you’ll need to install its init scripts using the update-rc.d
+# To enable the RabbitMQ service, you'll need to install its init scripts using the update-rc.d
 update-rc.d rabbitmq-server enable
 
 # Create a dedicated RabbitMQ vhost for Sensu
