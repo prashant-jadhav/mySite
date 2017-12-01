@@ -21,3 +21,6 @@ launchEC2.yaml and terminateEC2.yaml added in the repo
 
 Refer following document for quick referrence
 http://docs.ansible.com/ansible/latest/modules_by_category.html
+
+Use for linting yaml playbook
+http://www.yamllint.com/
