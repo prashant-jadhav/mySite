@@ -1,0 +1,24 @@
+--- 
+- 
+  gather_facts: false
+  hosts: localhost
+  name: "Launch EC2 instance"
+  tasks: 
+    - 
+      ec2: 
+        assign_public_ip: true
+        aws_access_key: AKIAJPMNIMEPTRBGXHEA
+        aws_secret_key: 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
+        image: ami-55ef662f
+        instance_type: t2.micro
+        keypair: ansibleHost
+        monitoring: false
+        region: us-east-1
+        vpc_subnet_id: subnet-6349e139
+        wait: true
+      name: "Launch instance"
+      register: ec2
+    - 
+      debug: var=ec2
+      name: "Print all ec2 variables"
+
