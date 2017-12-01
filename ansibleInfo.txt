@@ -1,0 +1,23 @@
+ssh -i /d/Dropbox/drive/aws/ansibleHost/<private_key> ec2-user@publicIPofInstance
+sudo su -
+pip install ansible
+
+###create folder structure
+mkdir /etc/ansible
+cd /etc/ansible
+touch ansible.cfg
+touch hosts
+mkdir roles
+
+whereis ansible-playbook
+vim .bash_profile
+PATH=$PATH:/usr/local/bin
+
+## IAM User ansibleHost
+access_key : {{ access_key }}
+secret_key : {{ secret_key }}
+
+launchEC2.yaml and terminateEC2.yaml added in the repo
+
+Refer following document for quick referrence
+http://docs.ansible.com/ansible/latest/modules_by_category.html
