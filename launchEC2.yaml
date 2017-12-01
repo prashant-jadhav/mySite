@@ -7,8 +7,8 @@
     - 
       ec2: 
         assign_public_ip: true
-        aws_access_key: AKIAJPMNIMEPTRBGXHEA
-        aws_secret_key: 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
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
         image: ami-55ef662f
         instance_type: t2.micro
         keypair: ansibleHost
