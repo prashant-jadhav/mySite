@@ -96,7 +96,7 @@ body .your-class {
   white-space:nowrap;
 }
 ._pxg {
-  background-image:url(images/star-d.png);
+  background-image:url(../images/star-d.png);
   background-size:14px 13px;
   height:13px;
   top:1px;
@@ -104,7 +104,7 @@ body .your-class {
   display:inline-block;
 }
 ._pxg span.rating {
-  background-image:url(images/star.png);
+  background-image:url(../images/star.png);
   background-size:14px 13px;
   height:13px;
   top:1px;
