@@ -2,13 +2,13 @@
 - 
   connection: local
   hosts: localhost
-  name: "Terminate instances"
+  name: "Terminate bastion instance"
   tasks: 
     - 
       ec2: 
         aws_access_key: "{{ aws_access_key}}"
         aws_secret_key: "{{ aws_secret_key }}"
         instance_ids: "{{ instance_ids }}"
-        region: us-east-1
+        region: ap-south-1
         state: absent
-      name: "Terminate instances that were previously launched"
+      name: "Terminate bastion instance that was previously launched"
