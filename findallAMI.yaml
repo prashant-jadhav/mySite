@@ -1,0 +1,16 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "List all AMIs from Corporate VPC"
+
+  tasks:
+    - ec2_ami_find:
+        owner: self
+        region: ap-south-1        
+        no_result_action: fail
+      register: ami_find
+    - 
+      debug: var=ami_find
+      name: "List all AMIs from Corporate VPC"
+

@@ -1,0 +1,17 @@
+--- 
+- 
+  connection: local
+  hosts: localhost
+  name: "Terminate bastion instance"
+  tasks: 
+    - 
+      ec2: 
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        instance_ids: "i-02537fc29fe78f1b2"
+        region: ap-south-1
+        state: absent
+      name: "Terminate bastion instance that was previously launched"
+  vars:
+    aws_access_key: "{{ lookup('vault', 'secret/aKey', 'value') }}"
+    aws_secret_key: "{{ lookup('vault', 'secret/sKey', 'value') }}"

@@ -1,0 +1,17 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "Wordpress-Sites ASG gather_facts"
+
+  tasks:
+    -
+      shell: "aws --region ap-south-1 autoscaling describe-auto-scaling-groups --auto-scaling-group-names Wordpress-Sites > gather_facts.txt 2>&1"
+      
+    - 
+      shell: "cat gather_facts.txt"
+      register: output
+    - 
+      debug: var=output
+      name: "Wordpress-Sites ASG gathered facts"
+

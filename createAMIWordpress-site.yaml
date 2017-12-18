@@ -1,0 +1,24 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "Create AIM from current instance of Wordpress-site"
+
+  tasks:
+    - ec2_ami:
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        instance_id: i-08a0e4bb37e39a9c6
+        no_reboot : yes
+        region: ap-south-1
+        wait: no
+        name: "Wordpress-sites-autoscale-18-Dec-2017-11-30-15-AM"
+        description: "AMI created for testing ansible playbook for the same"
+        tags:
+          Name: "Wordpress-sites-autoscale-18-Dec-2017-11-30-15-AM"
+                   
+      register: image
+
+  vars:
+    aws_access_key: "{{ lookup('vault', 'secret/aKey', 'value') }}"
+    aws_secret_key: "{{ lookup('vault', 'secret/sKey', 'value') }}"

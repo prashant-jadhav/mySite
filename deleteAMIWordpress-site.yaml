@@ -1,0 +1,17 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "Deregistering AIM and deleting related snapshot for Wordpress-site"
+
+  tasks:
+    -
+      #following is to modify min-size of ASG
+      shell: "./delete-ami.sh > gather_facts.txt 2>&1"
+
+    - 
+      shell: "cat gather_facts.txt"
+      register: output
+    - 
+      debug: var=output
+      name: "Deregistering AIM and deleting related snapshot for Wordpress-site"

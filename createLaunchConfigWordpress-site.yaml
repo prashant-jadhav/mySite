@@ -1,0 +1,25 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: Create launch configuration for Wordpress-site
+
+  tasks:
+    - ec2_lc:
+        name: "Wordpress-sites-autoscale-18-Dec-2017-11-30-15-AM"
+        image_id: ami-2b80cb44
+        key_name: Wordpress-AutoScale
+        security_groups: ['sg-20ef1348' ]
+        instance_type: t2.small
+        region: ap-south-1
+        volumes:
+          - device_name: /dev/sda1
+            volume_size: 50
+            device_type: gp2
+            delete_on_termination: true
+
+      register: LaunchCofig
+
+    - 
+      debug: var=LaunchCofig
+      name: "Create launch configuration for Wordpress-site"

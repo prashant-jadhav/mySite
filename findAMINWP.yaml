@@ -1,0 +1,17 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "List AMIs for non-Wordpress asg"
+
+  tasks:
+    - ec2_ami_find:
+        owner: self
+        region: ap-south-1
+        name: "non-Wordpress-autoscale*"
+        no_result_action: fail
+      register: ami_find
+    - 
+      debug: var=ami_find
+      name: "List AMIs for non-Wordpress asg"
+

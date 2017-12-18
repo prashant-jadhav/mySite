@@ -1,0 +1,11 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "Delete launch-configuration for Wordpress-site"
+
+  tasks:
+    -
+      #following is to modify min-size of ASG
+      shell: "aws --region ap-south-1 autoscaling delete-launch-configuration --launch-configuration-name Wordpress-sites-autoscale-28-Nov-2017-09-58-AM"
+    

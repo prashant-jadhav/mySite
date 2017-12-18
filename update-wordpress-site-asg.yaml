@@ -1,0 +1,14 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "Update Wordpress-Sites ASG"
+
+  tasks:
+    -
+      #following is to modify min-size of ASG
+      #shell: "aws --region ap-south-1 autoscaling update-auto-scaling-group --auto-scaling-group-name Wordpress-Sites --min-size 2 --vpc-zone-identifier subnet-c2eea5ab"
+
+      #following is to modify launch-configuration of ASG
+      shell: "aws --region ap-south-1 autoscaling update-auto-scaling-group --auto-scaling-group-name Wordpress-Sites --launch-configuration-name Wordpress-sites-autoscale-18-Dec-2017-11-30-15-AM --vpc-zone-identifier subnet-c2eea5ab"     
+    

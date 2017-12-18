@@ -1,0 +1,17 @@
+--- 
+- 
+  hosts: localhost
+  gather_facts: false
+  name: "List AMIs for Wordpress-sites asg"
+
+  tasks:
+    - ec2_ami_find:
+        owner: self
+        region: ap-south-1
+        name: "Wordpress-sites-autoscale*"
+        no_result_action: fail
+      register: ami_find
+    - 
+      debug: var=ami_find
+      name: "List AMIs for Wordpress-sites asg"
+

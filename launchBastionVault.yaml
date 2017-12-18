@@ -1,0 +1,29 @@
+--- 
+- 
+  gather_facts: false
+  hosts: localhost
+  name: "Launch Bastion instance"
+  tasks: 
+    - 
+      ec2: 
+        assign_public_ip: true
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        image: ami-ec622283
+        instance_type: t2.micro
+        keypair: prashantj-v2
+        monitoring: false
+        region: ap-south-1
+        vpc_subnet_id: subnet-c2eea5ab
+        instance_tags:
+           Name: bastionHost
+        wait: true
+      name: "Launch Bastion instance"
+      register: ec2
+    - 
+      debug: var=ec2
+      name: "Print all ec2 variables"
+  vars:
+    aws_access_key: "{{ lookup('vault', 'secret/aKey', 'value') }}"
+    aws_secret_key: "{{ lookup('vault', 'secret/sKey', 'value') }}"
+
