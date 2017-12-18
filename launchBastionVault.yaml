@@ -12,6 +12,7 @@
         image: ami-ec622283
         instance_type: t2.micro
         keypair: prashantj-v2
+	group: Public-Web
         monitoring: false
         region: ap-south-1
         vpc_subnet_id: subnet-c2eea5ab
