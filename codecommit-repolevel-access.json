@@ -1,0 +1,24 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "codecommit:*"
+            ],
+            "Resource": [
+                "arn:aws:codecommit:<region1>:<accountNo>:<repoName1>",
+                "arn:aws:codecommit:allowedIp2>:<repoName2>"
+             ],
+            "Condition": {
+                "ForAnyValue:IpAddress": {
+                    "aws:SourceIp": [
+                        "allowedIp1/32",
+                        "allowedIp2/32"
+                    ]
+                }
+            }
+        }
+    ]
+}
