@@ -1,0 +1,61 @@
+dbslave-n-weightage-change.yml
+####################
+---
+- name: Change weightage for DBslave-n during status check fail
+  hosts: localhost
+  become: yes
+  tasks:
+  - name: Check the alarm status of DBslave-n status-check
+    command: aws cloudwatch describe-alarms --alarm-names "CWatchAlarmName-" --region regionName --query 'MetricAlarms[*].StateValue' --output text
+    register: aws_result
+    delegate_to: localhost
+    delegate_facts: True
+
+  - name: Change weightage for DBslave-n in Route53
+    command: aws route53 change-resource-record-sets --region regionName --hosted-zone-id <hosted_zone_id> --change-batch file://dbslave-n.json
+    when: aws_result.stdout == "ALARM"
+
+####################
+
+dbslave-n.json
+####################
+{
+  "Comment": "optional comment about the changes in this change batch request",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "db1.example.com",
+        "Type": "A",
+        "SetIdentifier": "db1-1",
+        "Weight": 20,
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "172.31.43.45"
+          }
+        ]  
+      }
+    },
+     {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "db1.example.com",
+        "Type": "A",
+        "SetIdentifier": "db1-2",
+        "Weight": 80,
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "172.31.34.215"
+          }
+        ]  
+      }
+    }
+  ]
+}
+####################
+
+crontab
+*/5 * * * * nohup /usr/local/bin/ansible-playbook  dbslave-n-weightage-change.yml -v >> dbslave-n-weightage-change.out -v &
+####################
